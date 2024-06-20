@@ -3,6 +3,7 @@
 <head>
     <title>Map of CBMmart Projects</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <style>
         body, html {
             height: 100%;
@@ -126,11 +127,26 @@
         <img class="modal-content" id="img01">
     </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script>
         var map = L.map('map').setView([20, -80], 3); // 设置地图初始视角
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // 添加搜索框
+        var geocoder = L.Control.geocoder({
+            defaultMarkGeocode: false
+        }).on('markgeocode', function(e) {
+            var bbox = e.geocode.bbox;
+            var poly = L.polygon([
+                bbox.getSouthEast(),
+                bbox.getNorthEast(),
+                bbox.getNorthWest(),
+                bbox.getSouthWest()
+            ]).addTo(map);
+            map.fitBounds(poly.getBounds());
         }).addTo(map);
 
         // 定义地点数组
