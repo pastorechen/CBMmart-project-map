@@ -137,6 +137,11 @@
 
         // 添加搜索框
         var geocoder = L.Control.geocoder({
+            geocoder: new L.Control.Geocoder.Nominatim({
+                geocodingQueryParams: {
+                    'accept-language': 'en' // 指定查询结果显示为英文
+                }
+            }),
             defaultMarkGeocode: false
         }).on('markgeocode', function(e) {
             var bbox = e.geocode.bbox;
@@ -151,6 +156,14 @@
 
         // 定义地点数组
         var locations = [
+            {
+                lat: -1.28147, lng: 36.7623, 
+                title: 'Staircase-Pastore', 
+                description: 'double stringers glass staircase',
+                images: [
+                    'images/kenya-stair (1).jpg'
+                ]
+            },  
             {
                 lat: 40.64, lng: -73.98, 
                 title: 'Show Room-Pastore', 
