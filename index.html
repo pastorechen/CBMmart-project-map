@@ -4,12 +4,127 @@
     <title>Map of CBMmart Projects</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { height: 600px; width: 100%; }
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+        .header img {
+            width: 50px; /* 调整logo的大小 */
+            height: auto;
+            margin-right: 10px; /* logo和标题之间的间距 */
+        }
+        .header h1 {
+            font-size: 24px; /* 调整标题的大小 */
+            margin: 0;
+        }
+        .header a {
+            color: blue;
+            font-size: 12px;
+            text-decoration: none;
+        }
+        .note {
+            font-size: 12px;
+            color: gray;
+            margin: 0 10px 10px 10px; /* 调整与标题和地图的间距 */
+        }
+        #map-container {
+            flex-grow: 1;
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        .popup-content {
+            text-align: center; /* 内容居中对齐 */
+            max-width: 400px; /* 弹出窗口最大宽度 */
+            max-height: 250px; /* 弹出窗口最大高度 */
+            white-space: nowrap; /* 防止图片换行 */
+        }
+        .popup-content .image-container {
+            display: inline-block;
+            overflow-x: auto; /* 水平滚动条 */
+            width: 100%;
+            white-space: nowrap; /* 防止图片换行 */
+        }
+        .popup-content img {
+            max-height: 100px; /* 固定图片高度 */
+            margin: 5px; /* 图片间距 */
+            display: inline-block; /* 横向并排展示 */
+            cursor: pointer; /* 鼠标悬停时显示手型图标 */
+        }
+        .popup-content h3, .popup-content p {
+            margin: 5px 0; /* 标题和描述间距 */
+        }
+        .modal {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            z-index: 9999; /* 确保在地图之上 */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0); /* 背景颜色 */
+            background-color: rgba(0,0,0,0.9); /* 背景颜色与透明度 */
+        }
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+        }
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <h1>Map of CBMmart Projects</h1>
-    <div id="map"></div>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; align-items: center;">
+                <img src="images/Logo白底.jpg" alt="CBMmart Logo">
+                <h1>Map of CBMmart Projects</h1>
+            </div>
+            <a href="http://www.cbmmart.com" target="_blank">www.cbmmart.com</a>
+        </div>
+        <div class="note">
+            To protect our customer privacy, the positioning is slightly deviated. If you want to visit the project site, please contact our staff and obtain the consent of the homeowner in advance.
+        </div>
+        <div id="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+    <!-- Modal for image viewing -->
+    <div id="myModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="img01">
+    </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([20, -80], 3); // 设置地图初始视角
@@ -19,36 +134,71 @@
         }).addTo(map);
 
         // 定义地点数组
-var locations = [
+        var locations = [
             {
-                lat: 40.64106500703086, lng: -73.98362995155705, 
+                lat: 40.64, lng: -73.98, 
                 title: 'Show Room-Pastore', 
                 description: 'cabinetry, staircase, railings',
-                image: 'images/New York-Show room (1).jpg'
+                images: [
+                    'images/New York-Show room (1).jpg'
+                ]
             },        
-
             {
-                lat: 37.650210678124175, lng: -122.10590934802954, 
+                lat: 37.65, lng: -122.10, 
                 title: 'WIC-Pastore', 
-                description: 'WIC-Pastore。',
-                image: 'images/Hesperian closets (1).jpg'
+                description: '20 sets WIC',
+                images: [
+                    'images/Hesperian closets (1).jpg',
+                    'images/Hesperian closets (2).jpg'
+                ]
             },        
-
             {
-    lat: 45.42480315760768, 
-    lng: -122.69398159786661,
-    title: 'Renovation-Pastore',
-    description: 'Renovation project in Portland.',
-    image: 'images/cameo.jpg'
-}
-
+                lat: 45.42, lng: -122.69,
+                title: 'House renovation-Pastore',
+                description: 'One-stop solution products',
+                images: [
+                    // 生成'cameo (1).jpg' 到 'cameo (26).jpg'的图片路径
+                    ...Array.from({ length: 26 }, (_, i) => `images/cameo (${i + 1}).jpg`)
+                ]
+            }
         ];
 
         // 遍历地点数组，添加标记和信息窗口
         locations.forEach(function(location) {
+            // 生成包含多张图片的HTML内容
+            var imagesHtml = location.images.map(function(image) {
+                return '<img src="' + image + '" alt="' + location.title + '" onclick="openModal(this.src)">';
+            }).join('');
+
+            var popupContent = '<div class="popup-content">' +
+                               '<h3>' + location.title + '</h3>' +
+                               '<p>' + location.description + '</p>' +
+                               '<div class="image-container">' + imagesHtml + '</div>' +
+                               '</div>';
+
             var marker = L.marker([location.lat, location.lng]).addTo(map)
-                .bindPopup('<div><h3>' + location.title + '</h3><img src="' + location.image + '" alt="' + location.title + '" width="200"></div>');
+                .bindPopup(popupContent);
         });
+
+        // Modal script
+        var modal = document.getElementById("myModal");
+        var modalImg = document.getElementById("img01");
+        var span = document.getElementsByClassName("close")[0];
+
+        function openModal(src) {
+            modal.style.display = "block";
+            modalImg.src = src;
+        }
+
+        span.onclick = function() { 
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
     </script>
 </body>
 </html>
